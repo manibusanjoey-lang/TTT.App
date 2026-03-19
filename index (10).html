@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#080608"/>
+<meta name="description" content="TTT — Train. Travel. Transform. The social platform for people who never stop growing."/>
+<title>TTT — Train. Travel. Transform.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<!-- Supabase SDK — handles auth + database + storage -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="app.css"/>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     AGE GATE
+══════════════════════════════════════ -->
+<div id="age-gate" class="gone">
+  <div class="auth-bg"><div class="auth-orb1"></div><div class="auth-orb2"></div></div>
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;text-align:center;gap:1.2rem">
+    <div class="ag-logo"><span style="color:#C0302A">T</span><span style="color:#888">T</span><span style="color:#7B4FA8">T</span></div>
+    <h2 class="ag-title">Welcome to TTT</h2>
+    <p class="ag-sub">Train. Travel. Transform. You must be 13 or older to join the movement.</p>
+    <div class="ag-btns">
+      <button class="ag-yes" onclick="confirmAge(true)">I am 13 or older →</button>
+      <button class="ag-no" onclick="confirmAge(false)">I am under 13</button>
+    </div>
+    <p class="ag-legal">By continuing you agree to our <a href="#" onclick="openLegal('terms')">Terms of Service</a> and <a href="#" onclick="openLegal('privacy')">Privacy Policy</a>.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     AUTH SCREEN (Login / Sign Up)
+══════════════════════════════════════ -->
+<div id="auth-screen" class="gone">
+  <div class="auth-bg"><div class="auth-orb1"></div><div class="auth-orb2"></div></div>
+  <div class="auth-inner">
+    <div class="auth-logo-wrap">
+      <div class="auth-logo"><span class="t1">T</span><span class="t2">T</span><span class="t3">T</span></div>
+      <p class="auth-tagline">Train · Travel · Transform</p>
+    </div>
+
+    <!-- Toggle -->
+    <div class="auth-toggle">
+      <button class="auth-tog-btn active" data-mode="login" onclick="switchAuthMode('login')">Log In</button>
+      <button class="auth-tog-btn" data-mode="signup" onclick="switchAuthMode('signup')">Sign Up</button>
+    </div>
+
+    <!-- ── LOGIN FORM ── -->
+    <form class="auth-form" id="login-form" onsubmit="e=>e.preventDefault()">
+      <div class="field-wrap">
+        <label class="field-label">Email</label>
+        <div class="field-input-wrap">
+          <span class="field-ico">✉️</span>
+          <input class="auth-input" id="login-email" type="email" placeholder="your@email.com" autocomplete="email"/>
+        </div>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">Password</label>
+        <div class="field-input-wrap">
+          <span class="field-ico">🔒</span>
+          <input class="auth-input" id="login-pw" type="password" placeholder="Your password" autocomplete="current-password"/>
+          <button type="button" class="pw-toggle" onclick="togglePwVisibility('login-pw')">👁</button>
+        </div>
+      </div>
+      <p class="auth-err" id="login-err"></p>
+      <button class="auth-submit vio" id="login-submit" onclick="handleLogin()">Log In →</button>
+      <div class="auth-divider"><span>or</span></div>
+      <button class="auth-submit" style="background:rgba(255,255,255,.06);color:var(--light);border:1px solid var(--border)" onclick="switchAuthMode('signup')">Create a TTT Account</button>
+      <p style="text-align:center;font-size:.72rem;color:var(--muted);cursor:pointer" onclick="toast('Password reset coming soon — contact support@tttmovement.com')">Forgot password?</p>
+    </form>
+
+    <!-- ── SIGNUP FORM ── -->
+    <form class="auth-form hidden" id="signup-form" onsubmit="e=>e.preventDefault()">
+      <div class="field-wrap">
+        <label class="field-label">Full Name</label>
+        <div class="field-input-wrap">
+          <span class="field-ico">👤</span>
+          <input class="auth-input" id="signup-name" type="text" placeholder="Joey Manibusan" autocomplete="name"/>
+        </div>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">Username</label>
+        <div class="field-input-wrap">
+          <span class="field-ico">@</span>
+          <input class="auth-input" id="signup-username" type="text" placeholder="joey_ttt" autocomplete="username" style="padding-left:2.6rem"/>
+        </div>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">Email</label>
+        <div class="field-input-wrap">
+          <span class="field-ico">✉️</span>
+          <input class="auth-input" id="signup-email" type="email" placeholder="your@email.com" autocomplete="email"/>
+        </div>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">Password</label>
+        <div class="field-input-wrap">
+          <span class="field-ico">🔒</span>
+          <input class="auth-input" id="signup-pw" type="password" placeholder="At least 8 characters" autocomplete="new-password"/>
+          <button type="button" class="pw-toggle" onclick="togglePwVisibility('signup-pw')">👁</button>
+        </div>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">Confirm Password</label>
+        <div class="field-input-wrap">
+          <span class="field-ico">🔒</span>
+          <input class="auth-input" id="signup-pw2" type="password" placeholder="Repeat password" autocomplete="new-password"/>
+        </div>
+      </div>
+
+      <!-- Your dominant pillar -->
+      <div>
+        <p class="pillar-pick-label">Your Dominant Pillar</p>
+        <div class="pillar-pick">
+          <button type="button" class="pillar-pick-btn active-train" data-pillar="train" onclick="selectPillarAuth('train')">🔴 Train</button>
+          <button type="button" class="pillar-pick-btn" data-pillar="travel" onclick="selectPillarAuth('travel')">⚫ Travel</button>
+          <button type="button" class="pillar-pick-btn" data-pillar="transform" onclick="selectPillarAuth('transform')">🟣 Transform</button>
+        </div>
+      </div>
+
+      <!-- Avatar pick -->
+      <div>
+        <p class="pillar-pick-label">Choose Your Avatar</p>
+        <div class="avatar-picker" id="avatar-picker"></div>
+      </div>
+
+      <p class="auth-err" id="signup-err"></p>
+
+      <!-- Terms consent -->
+      <label style="display:flex;gap:.6rem;align-items:flex-start;cursor:pointer">
+        <input type="checkbox" id="signup-consent" style="margin-top:.15rem;accent-color:var(--vio);flex-shrink:0"/>
+        <span class="auth-consent">I am 13+ and agree to the <a onclick="openLegal('terms')">Terms of Service</a> and <a onclick="openLegal('privacy')">Privacy Policy</a></span>
+      </label>
+
+      <button class="auth-submit vio" id="signup-submit" onclick="handleSignup()">Create Account →</button>
+      <div class="auth-divider"><span>or</span></div>
+      <button type="button" class="auth-submit" style="background:rgba(255,255,255,.06);color:var(--light);border:1px solid var(--border)" onclick="switchAuthMode('login')">Already have an account</button>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ONBOARDING
+══════════════════════════════════════ -->
+<div id="onboarding" class="gone">
+  <div class="ob-slide active">
+    <div class="ob-ico">🔥</div>
+    <h2 class="ob-title" style="color:#C0302A">Train</h2>
+    <p class="ob-sub">Log workouts, hit PRs, share your grind. Your body is your most powerful machine.</p>
+    <div class="ob-dots"><div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
+    <button class="ob-btn" onclick="nextSlide()">Next →</button>
+    <span class="ob-skip" onclick="finishOnboarding()">Skip</span>
+  </div>
+  <div class="ob-slide">
+    <div class="ob-ico">🌍</div>
+    <h2 class="ob-title" style="color:#888">Travel</h2>
+    <p class="ob-sub">Track countries, plan trips, discover guides. The world is enormous. Go explore it.</p>
+    <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
+    <button class="ob-btn" onclick="nextSlide()">Next →</button>
+    <span class="ob-skip" onclick="finishOnboarding()">Skip</span>
+  </div>
+  <div class="ob-slide">
+    <div class="ob-ico">🧠</div>
+    <h2 class="ob-title" style="color:#7B4FA8">Transform</h2>
+    <p class="ob-sub">Journal daily, build habits, rewire your mindset. Transformation is a daily practice.</p>
+    <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div></div>
+    <button class="ob-btn" onclick="nextSlide()">Next →</button>
+    <span class="ob-skip" onclick="finishOnboarding()">Skip</span>
+  </div>
+  <div class="ob-slide">
+    <div class="ob-ico">👑</div>
+    <h2 class="ob-title">The Movement</h2>
+    <p class="ob-sub">Post your journey. Follow others. Climb the leaderboard. TTT isn't a brand you follow — it's a standard you live by.</p>
+    <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot active"></div></div>
+    <button class="ob-btn" style="background:linear-gradient(135deg,#8B1A1A,#3B1A5A)" onclick="finishOnboarding()">Let's Go 🔥</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Context Menu -->
+<div class="ctx-menu" id="ctx-menu">
+  <div class="ctx-item" onclick="toast('Link copied 🔗');closeCtxMenu()">🔗 Copy Link</div>
+  <div class="ctx-item" onclick="toast('Post hidden');closeCtxMenu()">🚫 Not Interested</div>
+  <div class="ctx-item" onclick="toast('Unfollowed');closeCtxMenu()">👤 Unfollow</div>
+  <div class="ctx-item danger" onclick="reportPost()">⚠️ Report Post</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     POST COMPOSER MODAL (with photo upload)
+══════════════════════════════════════ -->
+<div class="modal modal-slide" id="post-modal">
+  <div class="modal-head">
+    <button class="modal-close" onclick="closeModal('post-modal')">✕</button>
+    <span class="modal-title">New Post</span>
+    <button class="comp-post-btn" onclick="submitPost()">Post</button>
+  </div>
+  <div class="modal-scroll">
+    <!-- Caption row -->
+    <div class="comp-row">
+      <div class="comp-av" id="comp-avatar-display">👑</div>
+      <textarea class="comp-ta" id="comp-ta" placeholder="Share your TTT moment…" rows="3"></textarea>
+    </div>
+
+    <!-- Pillar selector -->
+    <div class="pillar-btns">
+      <button class="pillar-btn sel-train" data-pillar="train" onclick="selectPillar(this,'train')">🔴 Train</button>
+      <button class="pillar-btn" data-pillar="travel" onclick="selectPillar(this,'travel')">⚫ Travel</button>
+      <button class="pillar-btn" data-pillar="transform" onclick="selectPillar(this,'transform')">🟣 Transform</button>
+    </div>
+
+    <!-- Media type tabs -->
+    <div class="media-tabs">
+      <div class="media-tab" data-tab="none" onclick="switchMediaTab('none')">No Photo</div>
+      <div class="media-tab tab-train" data-tab="train" onclick="switchMediaTab('train')">🔴 Train</div>
+      <div class="media-tab tab-travel" data-tab="travel" onclick="switchMediaTab('travel')">⚫ Travel</div>
+      <div class="media-tab tab-transform" data-tab="transform" onclick="switchMediaTab('transform')">🟣 Transform</div>
+    </div>
+
+    <!-- Pillar-specific prompts -->
+    <div class="upload-prompt" id="prompt-train"
+      style="background:rgba(192,48,42,.06);border-left:2px solid var(--red);margin:.3rem 1rem;border-radius:0 .5rem .5rem 0;padding:.6rem .9rem">
+      📸 <strong style="color:var(--red)">Train Photo</strong> — Gym session, PR moment, meal prep, body progress, or workout setup.
+    </div>
+    <div class="upload-prompt" id="prompt-travel"
+      style="background:rgba(136,136,136,.06);border-left:2px solid var(--grey);margin:.3rem 1rem;border-radius:0 .5rem .5rem 0;padding:.6rem .9rem">
+      🌍 <strong style="color:var(--grey)">Travel Photo</strong> — Destination landscapes, street food, culture, passport stamps, or city skylines.
+    </div>
+    <div class="upload-prompt" id="prompt-transform"
+      style="background:rgba(123,79,168,.06);border-left:2px solid var(--vio);margin:.3rem 1rem;border-radius:0 .5rem .5rem 0;padding:.6rem .9rem">
+      🧠 <strong style="color:var(--vio)">Transform Photo</strong> — Journal pages, morning ritual, book notes, a moment of clarity, or your growth environment.
+    </div>
+
+    <!-- Upload options (camera / library) -->
+    <div class="upload-options" id="upload-options-row" style="display:none">
+      <div class="upload-opt" onclick="triggerCameraCapture('post')">
+        <div class="upload-opt-ico">📷</div>
+        <div class="upload-opt-lbl">Camera</div>
+      </div>
+      <div class="upload-opt" onclick="triggerPhotoUpload('post')">
+        <div class="upload-opt-ico">🖼️</div>
+        <div class="upload-opt-lbl">Library</div>
+      </div>
+      <div class="upload-opt" onclick="toast('Video coming soon 🎬')">
+        <div class="upload-opt-ico">🎬</div>
+        <div class="upload-opt-lbl">Video</div>
+      </div>
+    </div>
+
+    <!-- Photo upload zone -->
+    <div class="photo-upload-zone" id="post-upload-zone" onclick="triggerPhotoUpload('post')">
+      <div class="puz-ico">📸</div>
+      <div class="puz-title">Tap to add photo</div>
+      <div class="puz-sub">From your camera roll or take a new one</div>
+      <img class="puz-preview" id="post-photo-preview" alt="Post photo preview"/>
+      <div class="puz-remove" id="photo-remove-btn" onclick="event.stopPropagation();removePostPhoto()">✕</div>
+    </div>
+    <input type="file" id="photo-file-input" accept="image/*"/>
+
+    <!-- Filter strip (shown after photo selected) -->
+    <div id="filter-strip-wrap" style="display:none">
+      <div class="sec-label" style="padding:.5rem 1rem .2rem">Filter</div>
+      <div class="filter-strip" id="filter-strip"></div>
+    </div>
+    <script>
+      // Show/hide upload options row when media tab active
+      const origSwitch = window.switchMediaTab;
+      window.switchMediaTab = function(tab){
+        origSwitch && origSwitch(tab);
+        const row = document.getElementById('upload-options-row');
+        if(row) row.style.display = tab !== 'none' ? 'flex' : 'none';
+      };
+    </script>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     STORY COMPOSER MODAL
+══════════════════════════════════════ -->
+<div class="modal modal-slide" id="story-modal-compose">
+  <div class="modal-head">
+    <button class="modal-close" onclick="closeModal('story-modal-compose')">✕</button>
+    <span class="modal-title">Add to Story</span>
+    <button class="comp-post-btn" onclick="submitStory()">Share</button>
+  </div>
+  <div class="modal-scroll" style="padding:1rem">
+    <!-- Story photo zone -->
+    <div class="story-upload-zone" onclick="triggerPhotoUpload('story')" id="story-upload-zone">
+      <div class="puz-ico" style="font-size:3rem">📸</div>
+      <div class="puz-title">Add a photo to your story</div>
+      <div class="puz-sub" style="font-size:.72rem;text-align:center">Train · Travel · Transform moments<br>disappear after 24 hours</div>
+      <img class="story-photo-preview" id="story-photo-preview" alt="Story preview"/>
+    </div>
+    <input type="file" id="story-file-input" accept="image/*"/>
+
+    <!-- Story caption -->
+    <div style="margin-top:1rem">
+      <textarea class="journal-ta" id="story-caption" placeholder="Add a caption to your story…" style="min-height:60px"></textarea>
+    </div>
+
+    <!-- Story pillar tag -->
+    <div style="margin-top:.7rem">
+      <p class="pillar-pick-label">Tag Your Pillar</p>
+      <div class="pillar-pick">
+        <button type="button" class="pillar-pick-btn active-train" data-pillar="train" onclick="selectStoryPillar(this,'train')">🔴 Train</button>
+        <button type="button" class="pillar-pick-btn" data-pillar="travel" onclick="selectStoryPillar(this,'travel')">⚫ Travel</button>
+        <button type="button" class="pillar-pick-btn" data-pillar="transform" onclick="selectStoryPillar(this,'transform')">🟣 Transform</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     EDIT PROFILE MODAL
+══════════════════════════════════════ -->
+<div class="modal modal-slide" id="edit-profile-modal">
+  <div class="modal-head">
+    <button class="modal-close" onclick="closeModal('edit-profile-modal')">✕</button>
+    <span class="modal-title">Edit Profile</span>
+    <span></span>
+  </div>
+  <div class="modal-scroll" style="padding:1rem">
+    <!-- Avatar upload -->
+    <div class="avatar-upload-row">
+      <div class="current-avatar" id="edit-avatar-preview">👑</div>
+      <div>
+        <p style="font-size:.82rem;font-weight:600;margin-bottom:.3rem">Profile Photo</p>
+        <p style="font-size:.72rem;color:var(--muted);margin-bottom:.6rem">Your face — make it count</p>
+        <div class="avatar-upload-btn" onclick="document.getElementById('avatar-file-input').click()">📷 Change Photo</div>
+        <input type="file" id="avatar-file-input" accept="image/*"/>
+      </div>
+    </div>
+    <div class="edit-field">
+      <label class="edit-label">Display Name</label>
+      <input class="edit-input" id="edit-name" placeholder="Your full name"/>
+    </div>
+    <div class="edit-field">
+      <label class="edit-label">Username</label>
+      <input class="edit-input" id="edit-username" placeholder="your_username"/>
+    </div>
+    <div class="edit-field">
+      <label class="edit-label">Bio</label>
+      <input class="edit-input" id="edit-bio" placeholder="Tell the TTT community who you are…"/>
+    </div>
+    <button class="edit-save" onclick="saveProfile()">Save Profile ✓</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     NOTIFICATIONS MODAL
+══════════════════════════════════════ -->
+<div class="modal modal-slide" id="notif-modal">
+  <div class="modal-head">
+    <button class="modal-close" onclick="closeModal('notif-modal')">✕</button>
+    <span class="modal-title">Notifications</span>
+    <span style="font-size:.72rem;color:var(--vio);cursor:pointer" onclick="markAllRead()">Mark all read</span>
+  </div>
+  <div class="modal-scroll">
+    <div class="notif-row unread"><div class="notif-av">🏋️</div><div class="notif-txt"><b>marcus_t</b> liked your post</div><div class="notif-time">2m</div><div class="unread-dot"></div></div>
+    <div class="notif-row unread"><div class="notif-av">🧕</div><div class="notif-txt"><b>leila.k</b> started following you</div><div class="notif-time">15m</div><div class="unread-dot"></div></div>
+    <div class="notif-row unread"><div class="notif-av">🧑‍🦱</div><div class="notif-txt"><b>jordan_r</b> commented: "This is exactly the energy I needed 🙌"</div><div class="notif-time">1h</div><div class="unread-dot"></div></div>
+    <div class="notif-row unread"><div class="notif-av">👩</div><div class="notif-txt"><b>priya.m</b> liked your post</div><div class="notif-time">2h</div><div class="unread-dot"></div></div>
+    <div class="notif-row"><div class="notif-av">🔥</div><div class="notif-txt">You're on a <b>14 day streak!</b> 🔥</div><div class="notif-time">6h</div></div>
+    <div class="notif-row"><div class="notif-av">📖</div><div class="notif-txt">Someone purchased <b>"Where Structure Ends, Growth Begins"</b></div><div class="notif-time">1d</div></div>
+    <div class="notif-row"><div class="notif-av">🏆</div><div class="notif-txt">You're ranked <b>#1 on the TTT Leaderboard</b> this week!</div><div class="notif-time">2d</div></div>
+  </div>
+</div>
+
+<!-- Report Modal -->
+<div class="modal modal-slide" id="report-modal">
+  <div class="modal-head">
+    <button class="modal-close" onclick="closeModal('report-modal')">✕</button>
+    <span class="modal-title">Report Post</span><span></span>
+  </div>
+  <div class="modal-scroll">
+    <p style="font-size:.8rem;color:var(--muted);padding:.8rem 1rem 1rem;line-height:1.6">Help us keep TTT safe. Our team reviews all reports within 24 hours.</p>
+    <div class="report-option" onclick="submitReport('spam')"><span class="report-ico">📨</span>Spam or misleading</div>
+    <div class="report-option" onclick="submitReport('hate')"><span class="report-ico">🚫</span>Hate speech</div>
+    <div class="report-option" onclick="submitReport('harassment')"><span class="report-ico">⚠️</span>Harassment or bullying</div>
+    <div class="report-option" onclick="submitReport('false')"><span class="report-ico">❌</span>False information</div>
+    <div class="report-option" onclick="submitReport('copyright')"><span class="report-ico">©️</span>Copyright violation (DMCA)</div>
+    <div class="report-option danger" onclick="submitReport('illegal')"><span class="report-ico">🚨</span>Illegal content</div>
+    <p style="font-size:.72rem;color:var(--muted);padding:1rem;line-height:1.65">DMCA: <strong style="color:var(--light)">dmca@tttmovement.com</strong><br/>Safety: <strong style="color:var(--light)">safety@tttmovement.com</strong></p>
+  </div>
+</div>
+
+<!-- Legal Modals -->
+<div class="modal" id="terms-modal">
+  <div class="modal-head"><button class="modal-close" onclick="closeModal('terms-modal')">✕</button><span class="modal-title">Terms of Service</span><span></span></div>
+  <div class="modal-scroll"><div class="legal-content">
+    <h1 class="legal-title">Terms of Service</h1><p class="legal-date">Effective January 1, 2025</p>
+    <p class="legal-p">By using TTT you agree to these Terms. You must be 13+ to use this platform.</p>
+    <h2 class="legal-h2">User Content</h2><p class="legal-p">You own your content. By posting you grant TTT a license to display it on the platform. You may not post illegal, harmful, or copyrighted content you don't own.</p>
+    <h2 class="legal-h2">Prohibited Conduct</h2><ul class="legal-ul"><li>Harassment or hate speech</li><li>Impersonation</li><li>Copyright infringement</li><li>CSAM — zero tolerance, reported to NCMEC immediately</li><li>Spam or illegal activity</li></ul>
+    <h2 class="legal-h2">DMCA Copyright</h2><p class="legal-p">Send copyright claims to <strong class="legal-link">dmca@tttmovement.com</strong></p>
+    <h2 class="legal-h2">Limitation of Liability</h2><p class="legal-p">TTT is provided "as is." Fitness advice is informational only — consult a professional before starting any program. TTT is not liable for user-generated content.</p>
+    <h2 class="legal-h2">Governing Law</h2><p class="legal-p">These Terms are governed by Washington State law, USA.</p>
+    <div class="legal-contact"><p><strong>Contact:</strong> legal@tttmovement.com</p></div>
+  </div></div>
+</div>
+
+<div class="modal" id="privacy-modal">
+  <div class="modal-head"><button class="modal-close" onclick="closeModal('privacy-modal')">✕</button><span class="modal-title">Privacy Policy</span><span></span></div>
+  <div class="modal-scroll"><div class="legal-content">
+    <h1 class="legal-title">Privacy Policy</h1><p class="legal-date">Effective January 1, 2025</p>
+    <p class="legal-p">TTT is committed to protecting your privacy.</p>
+    <h2 class="legal-h2">What We Collect</h2><ul class="legal-ul"><li>Account info: name, email, username, profile photo</li><li>Content: posts, journals, workout logs, travel entries</li><li>Usage data: features used, time spent</li><li>Device info: type, OS, browser, IP</li></ul>
+    <h2 class="legal-h2">We Do NOT</h2><ul class="legal-ul"><li>Sell your data to third parties</li><li>Share data with advertisers</li><li>Read your private journal entries</li></ul>
+    <h2 class="legal-h2">Your Rights (GDPR/CCPA)</h2><p class="legal-p">You can access, correct, export, or delete your data at any time. Email <strong class="legal-link">privacy@tttmovement.com</strong></p>
+    <h2 class="legal-h2">Children (COPPA)</h2><p class="legal-p">TTT does not knowingly collect data from children under 13. Contact privacy@tttmovement.com if you believe a minor has registered.</p>
+    <div class="legal-contact"><p><strong>Privacy:</strong> privacy@tttmovement.com</p></div>
+  </div></div>
+</div>
+
+<!-- Story Viewer -->
+<div id="story-modal">
+  <canvas id="story-cv"></canvas>
+  <div class="story-prog-bar" id="story-prog-bar"></div>
+  <div class="story-user-info">
+    <div class="story-user-av"><span id="story-av-inner">👑</span></div>
+    <span class="story-uname" id="story-uname">@ttt.joey</span>
+  </div>
+  <button class="story-close-btn" onclick="closeStory()">✕</button>
+  <div class="story-reply">
+    <input class="story-reply-input" placeholder="Reply to story…"/>
+  </div>
+</div>
+
+<!-- Pull to Refresh -->
+<div id="ptr"><div class="ptr-spinner"></div></div>
+
+<!-- ══════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════ -->
+<div id="app">
+  <!-- TOP NAV -->
+  <div id="top-nav">
+    <div class="nav-logo" onclick="switchTab('feed')"><span class="t1">T</span><span class="t2">T</span><span class="t3">T</span></div>
+    <div class="nav-actions">
+      <div class="nav-btn" onclick="switchTab('explore')">🔍</div>
+      <div class="nav-btn" onclick="openNotif()">🔔<div class="nav-badge" id="notif-badge">4</div></div>
+      <div class="nav-btn" onclick="switchTab('profile')">👑</div>
+    </div>
+  </div>
+
+  <div class="scroll-view" id="main-scroll">
+
+    <!-- ══ FEED ══ -->
+    <div class="screen active" id="screen-feed">
+      <div id="feed-posts">
+        <!-- Stories -->
+        <div class="stories-wrap">
+          <div class="story-item" onclick="openModal('story-modal-compose')">
+            <div class="story-ring add-ring"><div class="story-inner">➕</div></div>
+            <span class="story-name">Add Story</span>
+          </div>
+          <div class="story-item" onclick="openStory('joey')">
+            <div class="story-ring live-ring"><div class="story-inner">👑</div></div>
+            <span class="story-name">@ttt.joey</span>
+          </div>
+          <div class="story-item" onclick="openStory('marcus')">
+            <div class="story-ring live-ring"><div class="story-inner">🏋️</div></div>
+            <span class="story-name">marcus_t</span>
+          </div>
+          <div class="story-item" onclick="openStory('leila')">
+            <div class="story-ring seen-ring"><div class="story-inner">✈️</div></div>
+            <span class="story-name">leila.k</span>
+          </div>
+          <div class="story-item" onclick="openStory('jordan')">
+            <div class="story-ring live-ring"><div class="story-inner">🧠</div></div>
+            <span class="story-name">jordan_r</span>
+          </div>
+          <div class="story-item" onclick="openStory('priya')">
+            <div class="story-ring seen-ring"><div class="story-inner">🌍</div></div>
+            <span class="story-name">priya.m</span>
+          </div>
+        </div>
+        <!-- Filter Pills -->
+        <div class="pills-wrap">
+          <button class="pill active">All</button>
+          <button class="pill pill-red">🔴 Train</button>
+          <button class="pill pill-grey">⚫ Travel</button>
+          <button class="pill">🟣 Transform</button>
+          <button class="pill">Following</button>
+          <button class="pill">Trending</button>
+        </div>
+        <!-- Post 1 -->
+        <div class="post" data-id="1">
+          <div class="post-head">
+            <div class="post-av">👑</div>
+            <div class="post-meta">
+              <div class="post-name">Joey Manibusan <span class="verified">✦</span></div>
+              <div class="post-info"><span class="type-badge tb-train">Train</span> · 2h ago</div>
+            </div>
+            <div class="post-more" onclick="openCtxMenu(event,1)">•••</div>
+          </div>
+          <div class="post-media" style="background:linear-gradient(135deg,#1a0404,#0d0608)">
+            <canvas id="post-canvas-1"></canvas>
+          </div>
+          <div class="post-body"><p class="post-text"><strong>Morning grind ✅</strong> — 5AM. Bench press PR: 225lbs × 6. The discipline you build in the gym is the same discipline that builds empires. <span class="post-tag tag-red">#TTTTrain</span></p></div>
+          <div class="post-actions">
+            <div class="post-act liked" onclick="toggleLike(this,1)"><span class="act-ico">❤️</span> 284</div>
+            <div class="post-act" onclick="toast('Comments coming soon!')"><span class="act-ico">💬</span> 42</div>
+            <div class="post-act" onclick="sharePost(1)"><span class="act-ico">↗️</span></div>
+            <div class="post-spacer"></div>
+            <div class="post-act saved" onclick="toggleSave(this,1)"><span class="act-ico">🔖</span></div>
+          </div>
+        </div>
+        <!-- Post 2 -->
+        <div class="post" data-id="2">
+          <div class="post-head">
+            <div class="post-av">🧕</div>
+            <div class="post-meta">
+              <div class="post-name">leila.k</div>
+              <div class="post-info"><span class="type-badge tb-travel">Travel</span> · 5h ago</div>
+            </div>
+            <div class="post-more" onclick="openCtxMenu(event,2)">•••</div>
+          </div>
+          <div class="post-media" style="background:linear-gradient(135deg,#101010,#0d0d0d);min-height:220px">
+            <div class="post-media-bg" style="background:radial-gradient(ellipse at 50% 50%,rgba(50,50,50,.3),transparent)"></div>
+            <div class="post-media-emoji">🏝️</div>
+          </div>
+          <div class="post-body"><p class="post-text"><strong>Bali day 3.</strong> No phone. No noise. Just the feeling that the world is enormous and beautiful. <span class="post-tag tag-grey">#TTTTravel</span></p></div>
+          <div class="post-actions">
+            <div class="post-act" onclick="toggleLike(this,2)"><span class="act-ico">🤍</span> 196</div>
+            <div class="post-act" onclick="toast('Comments coming soon!')"><span class="act-ico">💬</span> 28</div>
+            <div class="post-act" onclick="sharePost(2)"><span class="act-ico">↗️</span></div>
+            <div class="post-spacer"></div>
+            <div class="post-act" onclick="toggleSave(this,2)"><span class="act-ico">🔖</span></div>
+          </div>
+        </div>
+        <!-- Post 3 -->
+        <div class="post" data-id="3">
+          <div class="post-head">
+            <div class="post-av">🧑‍🦱</div>
+            <div class="post-meta">
+              <div class="post-name">jordan_r</div>
+              <div class="post-info"><span class="type-badge tb-transform">Transform</span> · 8h ago</div>
+            </div>
+            <div class="post-more" onclick="openCtxMenu(event,3)">•••</div>
+          </div>
+          <div class="post-media" style="background:linear-gradient(135deg,#0c0416,#080608);min-height:220px">
+            <div class="post-media-bg" style="background:radial-gradient(ellipse at 50% 50%,rgba(59,26,90,.35),transparent)"></div>
+            <div class="post-media-emoji">🧠</div>
+          </div>
+          <div class="post-body"><p class="post-text"><strong>Day 90.</strong> I don't set goals anymore. I just become the person those goals belong to. <span class="post-tag">#TTTTransform</span></p></div>
+          <div class="post-actions">
+            <div class="post-act" onclick="toggleLike(this,3)"><span class="act-ico">🤍</span> 312</div>
+            <div class="post-act" onclick="toast('Comments coming soon!')"><span class="act-ico">💬</span> 67</div>
+            <div class="post-act" onclick="sharePost(3)"><span class="act-ico">↗️</span></div>
+            <div class="post-spacer"></div>
+            <div class="post-act" onclick="toggleSave(this,3)"><span class="act-ico">🔖</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ EXPLORE ══ -->
+    <div class="screen" id="screen-explore">
+      <div class="scr-header"><div><p class="scr-sup">Discover</p><h2 class="scr-title">Explore</h2></div></div>
+      <div class="search-wrap"><span class="search-ico">🔍</span><input class="search-input" placeholder="Search people, posts, destinations…"/></div>
+      <div class="sec-label">People You May Know <a>See all</a></div>
+      <div class="user-row"><div class="user-av">🏋️</div><div style="flex:1"><div class="user-name">marcus_t</div><div class="user-bio">Train specialist · 22kg gained</div></div><button class="follow-pill" onclick="toggleFollow(this,'marcus_t')">Follow</button></div>
+      <div class="user-row"><div class="user-av">✈️</div><div style="flex:1"><div class="user-name">leila.k</div><div class="user-bio">Explorer · 18 countries · Bali right now</div></div><button class="follow-pill following" onclick="toggleFollow(this,'leila.k')">Following ✓</button></div>
+      <div class="user-row"><div class="user-av">🧠</div><div style="flex:1"><div class="user-name">jordan_r</div><div class="user-bio">90 day transform streak</div></div><button class="follow-pill following" onclick="toggleFollow(this,'jordan_r')">Following ✓</button></div>
+      <div class="user-row"><div class="user-av">👩</div><div style="flex:1"><div class="user-name">priya.m</div><div class="user-bio">Train + Transform · 18kg lost</div></div><button class="follow-pill" onclick="toggleFollow(this,'priya.m')">Follow</button></div>
+      <div class="divider"></div>
+      <div class="sec-label">Trending</div>
+      <div class="grid-3" style="padding:.3rem">
+        <div class="grid-cell" style="background:linear-gradient(135deg,#1a0404,#0d0608)"><span>💪</span><span class="grid-tag gt-r">Train</span></div>
+        <div class="grid-cell" style="background:linear-gradient(135deg,#101010,#080608)"><span>🌍</span><span class="grid-tag gt-g">Travel</span></div>
+        <div class="grid-cell" style="background:linear-gradient(135deg,#0c0416,#080608)"><span>🧠</span><span class="grid-tag gt-v">Transform</span></div>
+        <div class="grid-cell" style="background:linear-gradient(135deg,#1a0404,#0d0608)"><span>🏔️</span><span class="grid-tag gt-g">Travel</span></div>
+        <div class="grid-cell" style="background:linear-gradient(135deg,#0c0416,#080608)"><span>📓</span><span class="grid-tag gt-v">Transform</span></div>
+        <div class="grid-cell" style="background:linear-gradient(135deg,#1a0404,#0d0608)"><span>🔥</span><span class="grid-tag gt-r">Train</span></div>
+      </div>
+    </div>
+
+    <!-- ══ TRAIN ══ -->
+    <div class="screen" id="screen-train">
+      <div class="scr-header"><div><p class="scr-sup">Your fitness</p><h2 class="scr-title" style="color:var(--red)">Train</h2></div><button style="width:34px;height:34px;border-radius:50%;background:var(--red-d);border:none;color:var(--light);font-size:1.2rem;cursor:pointer" onclick="openPost('train')">+</button></div>
+      <div class="prog-ring-wrap">
+        <svg class="prog-ring-svg" width="110" height="110" viewBox="0 0 110 110">
+          <circle class="prog-ring-bg" cx="55" cy="55" r="48" stroke-width="7"/>
+          <circle class="prog-ring-fill" id="prog-fill" cx="55" cy="55" r="48" stroke-width="7" stroke="var(--red)" stroke-dasharray="301" stroke-dashoffset="301"/>
+        </svg>
+        <div class="prog-ring-center"><div class="prog-pct" id="prog-pct" style="color:var(--red)">0%</div><div class="prog-sub">Weekly Goal</div></div>
+      </div>
+      <div class="today-card">
+        <p class="today-label">Today's Workout</p>
+        <h3 class="today-title">Upper Body Power</h3>
+        <div class="today-stats"><div><div class="today-stat-n">6</div><div class="today-stat-l">Exercises</div></div><div><div class="today-stat-n">45</div><div class="today-stat-l">Minutes</div></div><div><div class="today-stat-n">380</div><div class="today-stat-l">Cal</div></div></div>
+        <button class="start-btn" onclick="toast('Workout started! 💪')">Start Workout →</button>
+      </div>
+      <div class="sec-label">Exercises <a>See all</a></div>
+      <div class="ex-row"><div class="ex-ico">🏋️</div><div style="flex:1"><div class="ex-name">Bench Press</div><div class="ex-detail">4 sets · 8 reps · 185 lbs</div></div><span class="ex-chev">›</span></div>
+      <div class="ex-row"><div class="ex-ico">💪</div><div style="flex:1"><div class="ex-name">Incline Dumbbell Press</div><div class="ex-detail">3 sets · 10 reps · 65 lbs</div></div><span class="ex-chev">›</span></div>
+      <div class="ex-row"><div class="ex-ico">🔁</div><div style="flex:1"><div class="ex-name">Cable Flies</div><div class="ex-detail">3 sets · 12 reps · 40 lbs</div></div><span class="ex-chev">›</span></div>
+      <div class="ex-row"><div class="ex-ico">⬆️</div><div style="flex:1"><div class="ex-name">Overhead Press</div><div class="ex-detail">4 sets · 6 reps · 135 lbs</div></div><span class="ex-chev">›</span></div>
+      <div class="divider"></div>
+      <div class="sec-label">Personal Records</div>
+      <div class="ex-row"><div class="ex-ico" style="background:var(--vio-dim)">🏆</div><div style="flex:1"><div class="ex-name">Bench Press — 225 lbs</div><div class="ex-detail">New record · 2 days ago</div></div><span style="color:var(--vio);font-size:.75rem;font-weight:700">+10 lbs</span></div>
+      <div class="ex-row"><div class="ex-ico" style="background:var(--vio-dim)">🏆</div><div style="flex:1"><div class="ex-name">Deadlift — 315 lbs</div><div class="ex-detail">New record · 1 week ago</div></div><span style="color:var(--vio);font-size:.75rem;font-weight:700">+15 lbs</span></div>
+    </div>
+
+    <!-- ══ TRAVEL ══ -->
+    <div class="screen" id="screen-travel">
+      <div class="scr-header"><div><p class="scr-sup">Explore the world</p><h2 class="scr-title" style="color:var(--grey)">Travel</h2></div><button style="width:34px;height:34px;border-radius:50%;background:var(--grey-d);border:none;color:var(--light);font-size:1.2rem;cursor:pointer" onclick="openPost('travel')">+</button></div>
+      <div class="map-wrap"><canvas id="travel-map"></canvas><div class="map-stat"><div class="map-stat-n">23</div><div class="map-stat-l">Countries</div></div></div>
+      <div class="sec-label">Your Destinations <a>+ Add</a></div>
+      <div class="dest-row"><div class="dest-ico">🇰🇷</div><div style="flex:1"><div class="dest-name">Seoul, South Korea</div><div class="dest-detail">Lived here · 2019–2020</div></div><span class="dest-status ds-v">Visited</span></div>
+      <div class="dest-row"><div class="dest-ico">🇩🇪</div><div style="flex:1"><div class="dest-name">Germany</div><div class="dest-detail">Lived here · 3 years</div></div><span class="dest-status ds-v">Visited</span></div>
+      <div class="dest-row"><div class="dest-ico">🇯🇵</div><div style="flex:1"><div class="dest-name">Tokyo, Japan</div><div class="dest-detail">Planned · Summer 2025</div></div><span class="dest-status ds-p">Planned</span></div>
+      <div class="dest-row"><div class="dest-ico">🇲🇦</div><div style="flex:1"><div class="dest-name">Atlas Mountains, Morocco</div><div class="dest-detail">Bucket list</div></div><span class="dest-status ds-d">Dream</span></div>
+    </div>
+
+    <!-- ══ TRANSFORM ══ -->
+    <div class="screen" id="screen-transform">
+      <div class="scr-header"><div><p class="scr-sup">Mindset & growth</p><h2 class="scr-title" style="color:var(--vio)">Transform</h2></div><button style="width:34px;height:34px;border-radius:50%;background:var(--vio-d);border:none;color:var(--light);font-size:1.2rem;cursor:pointer" onclick="openPost('transform')">+</button></div>
+      <div class="streak-card"><div class="streak-n">14</div><div><div class="streak-label">🔥 Day Streak</div><div class="streak-sub">14 days in a row.<br>Identity is built in streaks.</div></div></div>
+      <div class="quote-card"><p class="quote-txt">"The most dangerous person in the room is the one who never stops growing — who trains their body like a weapon, travels the world like a student, and transforms their mind like it's the only battlefield that truly matters."</p><p class="quote-by">— Joey Manibusan · Founder of TTT</p></div>
+      <div class="journal-card"><p class="journal-label">📓 Today's Prompt</p><p class="journal-q">What is one belief you held 1 year ago that no longer serves you? How have you transformed it?</p><textarea class="journal-ta" placeholder="Write your thoughts here…"></textarea><button class="journal-save" onclick="saveJournal()">Save Entry ✓</button></div>
+      <div class="sec-label">Daily Habits <a>Edit</a></div>
+      <div class="habit-row"><div class="habit-chk done" onclick="toggleHabit(this,1)">✓</div><div style="flex:1"><div class="habit-name">Morning Protocol</div><div class="habit-streak">14 day streak</div></div><div class="habit-dots" id="dots-1"></div></div>
+      <div class="habit-row"><div class="habit-chk done" onclick="toggleHabit(this,2)">✓</div><div style="flex:1"><div class="habit-name">Train (workout logged)</div><div class="habit-streak">11 day streak</div></div><div class="habit-dots" id="dots-2"></div></div>
+      <div class="habit-row"><div class="habit-chk done" onclick="toggleHabit(this,3)">✓</div><div style="flex:1"><div class="habit-name">Read 20 minutes</div><div class="habit-streak">8 day streak</div></div><div class="habit-dots" id="dots-3"></div></div>
+      <div class="habit-row"><div class="habit-chk" onclick="toggleHabit(this,4)"></div><div style="flex:1"><div class="habit-name">No phone first hour</div><div class="habit-streak">3 day streak</div></div><div class="habit-dots" id="dots-4"></div></div>
+      <div class="habit-row"><div class="habit-chk" onclick="toggleHabit(this,5)"></div><div style="flex:1"><div class="habit-name">Cold shower</div><div class="habit-streak">5 day streak</div></div><div class="habit-dots" id="dots-5"></div></div>
+      <div class="divider"></div>
+      <div class="sec-label">📖 Joey's Book</div>
+      <a class="book-card" href="https://a.co/d/0dYElcwr" target="_blank" rel="noopener"><div class="book-img">📗</div><div><p class="book-label">Published Book</p><p class="book-title">Where Structure Ends, Growth Begins</p><p class="book-author">Joey Manibusan</p><span class="book-cta">Get the Book →</span></div></a>
+    </div>
+
+    <!-- ══ PROFILE ══ -->
+    <div class="screen" id="screen-profile">
+      <div class="profile-top">
+        <div class="profile-av" id="profile-photo-wrap" style="position:relative">👑<div class="online-dot"></div></div>
+        <div class="profile-name">Joey Manibusan</div>
+        <div class="profile-tags">
+          <span class="ptag ptag-r">🎖 Army Veteran</span><span class="ptag ptag-v">🔐 Cyber Expert</span>
+          <span class="ptag ptag-g">✈️ World Traveler</span><span class="ptag ptag-r">💡 Entrepreneur</span>
+          <span class="ptag ptag-v">✍️ Author</span>
+        </div>
+        <div class="profile-bio">Founder of TTT · Train. Travel. Transform.<br>@ttt.joey · @ttt.culture</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-cell"><div class="stat-n" style="color:var(--red)">284</div><div class="stat-l">Posts</div></div>
+        <div class="stat-cell"><div class="stat-n" style="color:var(--grey)">12.4K</div><div class="stat-l">Followers</div></div>
+        <div class="stat-cell"><div class="stat-n" style="color:var(--vio)">348</div><div class="stat-l">Following</div></div>
+        <div class="stat-cell"><div class="stat-n" style="color:var(--red)">23</div><div class="stat-l">Countries</div></div>
+      </div>
+      <div class="prof-actions">
+        <div class="prof-btn primary" onclick="openEditProfile()">Edit Profile</div>
+        <div class="prof-btn secondary" onclick="openPost('train')">+ Post</div>
+      </div>
+      <div class="prof-tabs">
+        <div class="ptab active">Grid</div><div class="ptab">Train</div><div class="ptab">Travel</div><div class="ptab">Transform</div>
+      </div>
+      <div class="grid-3">
+        <div class="grid-cell" style="background:linear-gradient(135deg,#1a0404,#0d0608)"><span>🏋️</span><span class="grid-tag gt-r">Train</span></div>
+        <div class="grid-cell" style="background:linear-gradient(135deg,#101010,#080608)"><span>🌍</span><span class="grid-tag gt-g">Travel</span></div>
+        <div class="grid-cell" style="background:linear-gradient(135deg,#0c0416,#080608)"><span>🧠</span><span class="grid-tag gt-v">Transform</span></div>
+        <div class="grid-cell" style="background:linear-gradient(135deg,#1a0404,#0d0608)"><span>💪</span><span class="grid-tag gt-r">Train</span></div>
+        <div class="grid-cell" style="background:linear-gradient(135deg,#0e0e0e,#080608)"><span>🏔️</span><span class="grid-tag gt-g">Travel</span></div>
+        <div class="grid-cell" style="background:linear-gradient(135deg,#0c0416,#080608)"><span>📓</span><span class="grid-tag gt-v">Transform</span></div>
+      </div>
+      <div class="divider"></div>
+      <!-- Account settings -->
+      <div class="sec-label" style="padding-top:.8rem">Account</div>
+      <div class="account-section">
+        <div class="account-row" onclick="openEditProfile()"><span class="account-row-ico">✏️</span><span class="account-row-label">Edit Profile</span><span class="account-row-chev">›</span></div>
+        <div class="account-row" onclick="toast('Notifications settings coming soon!')"><span class="account-row-ico">🔔</span><span class="account-row-label">Notifications</span><span class="account-row-chev">›</span></div>
+        <div class="account-row" onclick="openLegal('privacy')"><span class="account-row-ico">🔒</span><span class="account-row-label">Privacy</span><span class="account-row-chev">›</span></div>
+        <div class="account-row" onclick="openLegal('terms')"><span class="account-row-ico">📋</span><span class="account-row-label">Terms of Service</span><span class="account-row-chev">›</span></div>
+        <div class="account-row" onclick="toast('support@tttmovement.com')"><span class="account-row-ico">💬</span><span class="account-row-label">Help & Support</span><span class="account-row-chev">›</span></div>
+        <div class="account-row danger" onclick="logout()"><span class="account-row-ico">🚪</span><span class="account-row-label">Sign Out</span></div>
+      </div>
+      <!-- Leaderboard -->
+      <div class="divider"></div>
+      <div class="sec-label" style="padding-top:.8rem">🏆 Leaderboard</div>
+      <div class="lb-tabs"><button class="lb-tab active">Overall</button><button class="lb-tab">Train</button><button class="lb-tab">Travel</button><button class="lb-tab">Transform</button></div>
+      <div class="lb-row"><div class="lb-rank gold">1</div><div class="lb-av">👑</div><div style="flex:1"><div class="lb-name">Joey Manibusan</div><div class="lb-detail">284 posts · 23 countries · 14 day streak</div></div><div class="lb-score">9,840</div></div>
+      <div class="lb-row"><div class="lb-rank silver">2</div><div class="lb-av">🏋️</div><div style="flex:1"><div class="lb-name">marcus_t</div><div class="lb-detail">Train specialist</div></div><div class="lb-score">7,210</div></div>
+      <div class="lb-row"><div class="lb-rank bronze">3</div><div class="lb-av">🌍</div><div style="flex:1"><div class="lb-name">leila.k</div><div class="lb-detail">Explorer · 18 countries</div></div><div class="lb-score">6,880</div></div>
+      <div class="lb-row"><div class="lb-rank">4</div><div class="lb-av">🧠</div><div style="flex:1"><div class="lb-name">jordan_r</div><div class="lb-detail">90 day transform streak</div></div><div class="lb-score">6,340</div></div>
+      <!-- Shop -->
+      <div class="divider"></div>
+      <div class="shop-banner"><div class="shop-title">TTT Clothing</div><div class="shop-sub">The brand you carry inside, worn on the outside.</div><div class="shop-cd"><div class="scd"><span class="scd-n" id="scd-d">00</span><div class="scd-l">Days</div></div><div class="scd"><span class="scd-n" id="scd-h">00</span><div class="scd-l">Hours</div></div><div class="scd"><span class="scd-n" id="scd-m">00</span><div class="scd-l">Min</div></div><div class="scd"><span class="scd-n" id="scd-s">00</span><div class="scd-l">Sec</div></div></div><button class="notify-btn" onclick="toast('✦ You\'re on the early access list!')">Notify Me When Live</button></div>
+      <div class="shop-row"><div class="shop-ico">👕</div><div style="flex:1"><div class="shop-name">TTT Oversized Tee</div><div class="shop-detail">Core Drop</div><div class="shop-price">Coming Soon</div></div><span class="shop-badge">Pending</span></div>
+      <div class="shop-row"><div class="shop-ico">🧥</div><div style="flex:1"><div class="shop-name">TTT Performance Hoodie</div><div class="shop-detail">Engineered for movement</div><div class="shop-price">Coming Soon</div></div><span class="shop-badge">Pending</span></div>
+      <div style="padding:1rem;display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center">
+        <span style="font-size:.68rem;color:var(--muted);cursor:pointer" onclick="openLegal('terms')">Terms</span>
+        <span style="font-size:.68rem;color:var(--muted)">·</span>
+        <span style="font-size:.68rem;color:var(--muted);cursor:pointer" onclick="openLegal('privacy')">Privacy</span>
+        <span style="font-size:.68rem;color:var(--muted)">·</span>
+        <span style="font-size:.68rem;color:var(--muted)">© 2025 TTT</span>
+      </div>
+    </div>
+
+  </div><!-- /main-scroll -->
+
+  <!-- BOTTOM TAB BAR -->
+  <div id="tab-bar">
+    <div class="tab active" id="tab-feed" onclick="switchTab('feed')"><span class="tab-ico">🏠</span><span class="tab-lbl">Feed</span></div>
+    <div class="tab" id="tab-train" onclick="switchTab('train')"><span class="tab-ico">🏋️</span><span class="tab-lbl">Train</span></div>
+    <div class="tab-post" onclick="openPost('train')">✚</div>
+    <div class="tab" id="tab-travel" onclick="switchTab('travel')"><span class="tab-ico">🌍</span><span class="tab-lbl">Travel</span></div>
+    <div class="tab" id="tab-transform" onclick="switchTab('transform')"><span class="tab-ico">🧠</span><span class="tab-lbl">Transform</span></div>
+  </div>
+</div><!-- /app -->
+
+<script src="app.js"></script>
+<script src="auth.js"></script>
+<script>
+/* Story submit */
+let storyPillar = 'train';
+function selectStoryPillar(btn, p){
+  storyPillar = p;
+  document.querySelectorAll('#story-modal-compose .pillar-pick-btn').forEach(b=>b.className='pillar-pick-btn');
+  btn.classList.add('active-'+p);
+}
+function submitStory(){
+  const caption = document.getElementById('story-caption')?.value.trim();
+  if(!PHOTO_STATE.storyPhotoUrl && !caption){toast('Add a photo or caption to your story');return;}
+  closeModal('story-modal-compose');
+  haptic('success');
+  toast('✦ Story shared!');
+  document.getElementById('story-caption').value='';
+  if(PHOTO_STATE.storyPhotoUrl){ URL.revokeObjectURL(PHOTO_STATE.storyPhotoUrl); PHOTO_STATE.storyPhotoUrl=null; PHOTO_STATE.storyPhoto=null; }
+  const sp=document.getElementById('story-photo-preview');
+  if(sp){sp.src='';sp.classList.remove('show');}
+}
+/* Legal helper */
+function openLegal(w){ openModal(w+'-modal'); }
+/* Profile tabs */
+document.querySelectorAll('.ptab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.ptab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
