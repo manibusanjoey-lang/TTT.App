@@ -75,10 +75,6 @@ function initAuth(){
   Store.set('ttt_user', null);
   showAuthScreen();
 }
-
-function confirmAge(over13){
-  if(over13){
-    Store.set('ageVerified', true);
     document.getElementById('age-gate').classList.add('gone');
     Store.set('ttt_user', null);
     showAuthScreen();
