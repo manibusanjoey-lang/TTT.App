@@ -55,21 +55,24 @@ const AVATARS = ['💪','🏋️','🌍','✈️','🧠','📚','🔥','⚡','�
 
 function initAuth(){
   initSupabase();
-  // Check if already logged in
-  const saved = Store.get('ttt_user');
-  if(saved){
-    AUTH.user = saved;
-    AUTH.profile = saved;
-    AUTH.isLoggedIn = true;
-    hideAuthScreen();
-    updateUIForUser(saved);
-    return;
-  }
   // Check age verification first
   if(!Store.get('ageVerified')){
     document.getElementById('age-gate').classList.remove('gone');
     return;
   }
+  // Only restore session if Supabase is connected
+  if(supabase){
+    const saved = Store.get('ttt_user');
+    if(saved && saved.id && !saved.id.startsWith('demo')){
+      AUTH.user = saved;
+      AUTH.profile = saved;
+      AUTH.isLoggedIn = true;
+      hideAuthScreen();
+      updateUIForUser(saved);
+      return;
+    }
+  }
+  // Always show auth screen if not properly logged in
   showAuthScreen();
 }
 
