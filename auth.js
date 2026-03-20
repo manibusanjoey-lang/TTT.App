@@ -5,8 +5,8 @@
 ═══════════════════════════════════════════════════ */
 
 /* ── SUPABASE CONFIG ──
-   const SUPABASE_URL = 'https://ykvifrnypfmvkstxjedp.supabase.co';
-   const SUPABASE_KEY = 'sb_publishable_YHG1Oo-b5g4j1kV8KbJO9A_m6yG0b6U';
+const SUPABASE_URL = 'https://ykvifrnypfmvkstxjedp.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_YHG1Oo-b5g4j1kV8KbJO9A_m6yG0b6U';
    Get them from: supabase.com → Project Settings → API
 ────────────────────────────────────────────────── */
 const SUPABASE_URL = 'YOUR_SUPABASE_URL';
