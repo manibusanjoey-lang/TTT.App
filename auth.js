@@ -55,23 +55,37 @@ const AVATARS = ['💪','🏋️','🌍','✈️','🧠','📚','🔥','⚡','�
 
 function initAuth(){
   initSupabase();
-  // Check age verification first
+  // Always show age gate first if not verified
   if(!Store.get('ageVerified')){
     document.getElementById('age-gate').classList.remove('gone');
     return;
   }
-  // Only restore session if Supabase is connected
-  if(supabase){
-    const saved = Store.get('ttt_user');
-    if(saved && saved.id && !saved.id.startsWith('demo')){
-      AUTH.user = saved;
-      AUTH.profile = saved;
-      AUTH.isLoggedIn = true;
-      hideAuthScreen();
-      updateUIForUser(saved);
-      return;
-    }
+  // Only skip login if user has a REAL Supabase account (not demo)
+  const saved = Store.get('ttt_user');
+  const isRealUser = saved && saved.id && !saved.id.toString().startsWith('demo');
+  if(isRealUser){
+    AUTH.user = saved;
+    AUTH.profile = saved;
+    AUTH.isLoggedIn = true;
+    hideAuthScreen();
+    updateUIForUser(saved);
+    return;
   }
+  // Clear any demo data and show auth screen
+  Store.set('ttt_user', null);
+  showAuthScreen();
+}
+
+function confirmAge(over13){
+  if(over13){
+    Store.set('ageVerified', true);
+    document.getElementById('age-gate').classList.add('gone');
+    Store.set('ttt_user', null);
+    showAuthScreen();
+  } else {
+    document.getElementById('age-gate').innerHTML='<div style="text-align:center;padding:3rem 2rem"><div style="font-size:3rem;margin-bottom:1rem">🔒</div><p style="color:var(--muted);font-size:.9rem;line-height:1.7">You must be 13 or older to use TTT.<br>Come back when you\'re ready to grow.</p></div>';
+  }
+}
   // Always show auth screen if not properly logged in
   showAuthScreen();
 }
