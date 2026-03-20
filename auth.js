@@ -274,9 +274,11 @@ function completeLogin(profile){
 
 /* ── LOGOUT ── */
 function logout(){
-  if(!confirm('Sign out of TTT?')) return;
-  AUTH.user = null; AUTH.profile = null; AUTH.isLoggedIn = false;
+  AUTH.user = null;
+  AUTH.profile = null;
+  AUTH.isLoggedIn = false;
   Store.set('ttt_user', null);
+  Store.set('ageVerified', null);
   if(supabase) supabase.auth.signOut();
   location.reload();
 }
